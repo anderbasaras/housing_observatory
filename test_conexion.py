@@ -1,4 +1,13 @@
-﻿import os
+﻿"""
+QUE HACE ESTE FICHERO
+Comprueba que el ordenador puede hablar con la base de datos.
+
+COMO FUNCIONA
+Lee la contraseña del fichero .env (que nunca se sube a internet),
+se conecta a la base y le pregunta su versión. Si responde, todo bien.
+"""
+
+import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
