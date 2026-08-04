@@ -1,0 +1,23 @@
+# Entorno virtual de Python
+.venv/
+venv/
+
+# Ficheros temporales de Python
+__pycache__/
+*.pyc
+
+# Credenciales - NUNCA subir
+.env
+
+# Datos - no se redistribuyen
+data/raw/
+data/processed/
+*.csv
+*.xlsx
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Sistema
+.DS_Store
+Thumbs.db
