@@ -21,23 +21,26 @@ import re
 import numpy as np
 import pandas as pd
 
-# --- Municipios del Area Funcional de Bilbao Metropolitano ---
-# PENDIENTE: verificar la relacion oficial completa (35 municipios)
-# frente a la fuente de la Diputacion Foral de Bizkaia
-
+# Municipios del Area Funcional de Bilbao Metropolitano.
+# Fuente: mapa de limites administrativos de Open Data Euskadi
+# (campo A_FUNC_CAS), licencia CC BY 4.0. Extraido con scripts/extract_af.py
+# Nota: Usansolo (48916) figura como municipio independiente en la
+# cartografia vigente, pero en 2022 formaba parte de Galdakao.
 MUNICIPALITIES = {
     'abanto': 'Abanto y Ciervana', 'alonsotegi': 'Alonsotegi',
-    'arrankudiaga': 'Arrankudiaga', 'arrigorriaga': 'Arrigorriaga',
+    'arrankudiaga': 'Arrankudiaga-Zollo', 'arrigorriaga': 'Arrigorriaga',
     'barakaldo': 'Barakaldo', 'barrika': 'Barrika', 'basauri': 'Basauri',
     'berango': 'Berango', 'bilbao': 'Bilbao', 'derio': 'Derio',
     'erandio': 'Erandio', 'etxebarri': 'Etxebarri', 'galdakao': 'Galdakao',
     'getxo': 'Getxo', 'gorliz': 'Gorliz', 'larrabetzu': 'Larrabetzu',
-    'leioa': 'Leioa', 'lemoiz': 'Lemoiz', 'lezama': 'Lezama', 'loiu': 'Loiu',
-    'muskiz': 'Muskiz', 'ortuella': 'Ortuella', 'plentzia': 'Plentzia',
-    'portugalete': 'Portugalete', 'santurtzi': 'Santurtzi', 'sestao': 'Sestao',
-    'sondika': 'Sondika', 'sopela': 'Sopela', 'trapagaran': 'Valle de Trapaga',
-    'urduliz': 'Urduliz', 'zamudio': 'Zamudio', 'zaratamo': 'Zaratamo',
-    'zeberio': 'Zeberio', 'zierbena': 'Zierbena', 'usansolo': 'Usansolo',
+    'leioa': 'Leioa', 'lemoiz': 'Lemoiz', 'lezama': 'Lezama',
+    'loiu': 'Loiu', 'muskiz': 'Muskiz', 'ortuella': 'Ortuella',
+    'plentzia': 'Plentzia', 'portugalete': 'Portugalete',
+    'santurtzi': 'Santurtzi', 'sestao': 'Sestao', 'sondika': 'Sondika',
+    'sopela': 'Sopela', 'ugao': 'Ugao-Miraballes', 'urduliz': 'Urduliz',
+    'usansolo': 'Galdakao', 'trapaga': 'Valle de Trapaga',
+    'zamudio': 'Zamudio', 'zaratamo': 'Zaratamo', 'zeberio': 'Zeberio',
+    'zierbena': 'Zierbena',
 }
 
 #Nombres de barrios que se publican como si fueran municipios
