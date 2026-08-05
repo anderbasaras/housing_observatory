@@ -31,14 +31,12 @@ from data_ingestion.transform import (
 CSV_PATH = 'data/raw/rent_spain_scraping_dataset.csv'
 DB_NAME = 'housing_observatory'
 
-
 def get_db():
     load_dotenv()
     uri = os.getenv('MONGODB_URI')
     if not uri:
         raise RuntimeError('Falta MONGODB_URI en el fichero .env')
     return MongoClient(uri)[DB_NAME]
-
 
 def clean(v):
     """Convierte los NaN de pandas en None, que es lo que entiende Mongo."""
@@ -47,7 +45,6 @@ def clean(v):
     if hasattr(v, 'item'):      # tipos numpy -> tipos Python
         return v.item()
     return v
-
 
 def load_raw(db, df):
     """Guarda el anuncio original con metadatos de la carga."""
@@ -86,7 +83,6 @@ def load_raw(db, df):
         if res.upserted_id:
             inserted += 1
     return inserted, col.count_documents({})
-
 
 def load_parsing_log(db, df):
     """Registra que hizo cada regla sobre cada anuncio."""
@@ -157,7 +153,6 @@ def load_parsing_log(db, df):
 
     return inserted, col.count_documents({})
 
-
 def main():
     print('1. Transformando el CSV...')
     df = transform(CSV_PATH)
@@ -187,7 +182,6 @@ def main():
     for row in db['parsing_log'].aggregate(pipeline):
         pct = row['ok'] / row['total'] * 100
         print(f"   {row['_id']:28s} {row['ok']:4d}/{row['total']:4d}  ({pct:5.1f} %)")
-
 
 if __name__ == '__main__':
     main()

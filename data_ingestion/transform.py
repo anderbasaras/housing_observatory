@@ -100,7 +100,6 @@ def parse_title(t):
             break
     return out
 
-
 def parse_shifted(v):
     t = str(v).lower()
     floor = None
@@ -114,7 +113,6 @@ def parse_shifted(v):
         False if re.search(r'sin ascen', t) else None)
     return floor, ext, lift
 
-
 def band(v, edges, labels):
     if pd.isna(v):
         return None
@@ -122,7 +120,6 @@ def band(v, edges, labels):
         if v <= e:
             return l
     return labels[-1]
-
 
 def transform(path):
     df = pd.read_csv(path)

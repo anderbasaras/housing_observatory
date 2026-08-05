@@ -31,7 +31,6 @@ def get_engine():
         raise RuntimeError('Falta DATABASE_URL en el fichero .env')
     return create_engine(url)
 
-
 def load_dim_time(conn):
     """Una sola fila: la fecha de captura del CSV."""
     conn.execute(text("""
@@ -43,7 +42,6 @@ def load_dim_time(conn):
     return conn.execute(text(
         "SELECT time_id FROM core.dim_time WHERE capture_date = :d"
     ), {'d': CAPTURE_DATE}).scalar()
-
 
 def load_dim_zone(conn, df):
     """Una fila por combinacion municipio + barrio."""
@@ -61,7 +59,6 @@ def load_dim_zone(conn, df):
         "SELECT zone_id, municipality, neighbourhood FROM core.dim_zone"
     )).fetchall()
     return {(m, n): z for z, m, n in rows}
-
 
 def load_dim_property_type(conn, df):
     """Una fila por combinacion tipologia + tramo habitaciones + tramo superficie."""
@@ -82,7 +79,6 @@ def load_dim_property_type(conn, df):
         FROM core.dim_property_type WHERE operation = 'rent'
     """)).fetchall()
     return {(t, r, a): p for p, t, r, a in rows}
-
 
 def load_dim_data_quality(conn, df):
     """Una fila por combinacion de banderas de calidad."""
@@ -106,11 +102,9 @@ def load_dim_data_quality(conn, df):
     """)).fetchall()
     return {(c, s, a, r): q for q, c, s, a, r in rows}
 
-
 def none_if_nan(v):
     """Convierte los NaN de pandas en None, que es lo que entiende SQL."""
     return None if pd.isna(v) else v
-
 
 def load_facts(conn, df, time_id, zones, types, qualities):
     inserted = 0
@@ -154,7 +148,6 @@ def load_facts(conn, df, time_id, zones, types, qualities):
         inserted += res.rowcount
     return inserted
 
-
 def main():
     print('1. Transformando el CSV...')
     df = transform(CSV_PATH)
@@ -177,7 +170,6 @@ def main():
     with engine.connect() as conn:
         total = conn.execute(text('SELECT COUNT(*) FROM core.fact_listing')).scalar()
         print(f'\nTOTAL EN BASE DE DATOS: {total} anuncios')
-
 
 if __name__ == '__main__':
     main()
