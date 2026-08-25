@@ -29,6 +29,13 @@ def main():
     print("1. Leyendo los barrios...")
     g = gpd.read_file(GEOJSON)
     print(f"   barrios: {len(g)} | sistema: {g.crs}")
+        # El servicio declara EPSG:4326 pero las coordenadas estan en
+    # EPSG:25830 (metros UTM huso 30). Se corrige la etiqueta y se
+    # reproyecta de verdad.
+    if g.geometry.iloc[0].bounds[0] > 180:
+        print('   AVISO: coordenadas en metros, no en grados. Reproyectando.')
+        g = g.set_crs('EPSG:25830', allow_override=True).to_crs('EPSG:4326')
+        print(f'   sistema corregido: {g.crs}')
 
     engine = get_engine()
     with engine.begin() as conn:
