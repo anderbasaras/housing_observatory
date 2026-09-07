@@ -41,3 +41,7 @@ def _valores_validos(prefijo: str) -> set:
 TIPOLOGIAS_VALIDAS = _valores_validos("typology_grouped")
 ZONAS_VALIDAS = _valores_validos("zona_modelo")
 MARGENES_VALIDOS = _valores_validos("river_bank")
+
+# --- Artefacto de anomalias (senal 2, 3 y 4 precalculadas) ---
+# Se carga igual que el modelo de precio: una sola vez al arrancar.
+anomaly_meta = joblib.load(DIR_ARTEFACTOS / "anomaly_meta.pkl")

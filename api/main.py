@@ -80,3 +80,99 @@ def predict_price(peticion: PeticionPrecio):
         precio_estimado_eur=round(precio_eur, 2),
         sqm_per_room=sqm_per_room,
     )
+
+
+from api.model_loader import anomaly_meta
+from api.schemas import PeticionAnomalia, RespuestaAnomalia, DesgloseSenales
+
+
+def _clip01(x):
+    """Recorta un valor al rango [0, 1]."""
+    return max(0.0, min(1.0, float(x)))
+
+
+@app.post("/score_anomaly", response_model=RespuestaAnomalia)
+def score_anomaly(peticion: PeticionAnomalia):
+    """Audita si el precio de un anuncio es anomalo.
+
+    Combina las cuatro senales del sistema (reglas, desviacion de
+    zona, desviacion del modelo, Isolation Forest) en una puntuacion
+    de 0 a 1. Las constantes se leen del artefacto anomaly_meta, por
+    lo que el resultado es identico al del notebook.
+    """
+    m = anomaly_meta
+    reglas = m["reglas"]
+    pesos = m["pesos"]
+    tope = m["tope"]
+
+    # Variables derivadas, igual que en el ETL.
+    price_per_sqm = peticion.monthly_price / peticion.area_sqm
+    sqm_per_room = round(peticion.area_sqm / peticion.n_rooms, 1)
+
+    # --- SENAL 1: reglas de consistencia ---
+    r_pm2 = price_per_sqm < reglas["precio_m2_min"] or price_per_sqm > reglas["precio_m2_max"]
+    r_sup = peticion.area_sqm < reglas["superficie_min"] or peticion.area_sqm > reglas["superficie_max"]
+    r_hab = peticion.n_rooms > reglas["habitaciones_max"]
+    r_den = sqm_per_room < reglas["densidad_min"]
+    n_reglas = int(r_pm2) + int(r_sup) + int(r_hab) + int(r_den)
+    p_reglas = _clip01(n_reglas / 4)
+
+    # --- SENAL 2: desviacion respecto a la mediana de la zona ---
+    # Mediana de la zona (con todos los anuncios). Si la zona no
+    # estuviera en el artefacto, se usa la mediana global de respaldo.
+    med_zona = m["zone_median"].get(peticion.zona_modelo, m["mediana_global"])
+    price_relative_zone = price_per_sqm / med_zona
+    z_zona = (price_relative_zone - m["prz_mean"]) / m["prz_std"]
+    p_zona = _clip01(min(abs(z_zona), tope) / tope)
+
+    # --- SENAL 3: desviacion respecto a lo que predice el modelo ---
+    fila = pd.DataFrame([{
+        "area_sqm": peticion.area_sqm,
+        "n_rooms": peticion.n_rooms,
+        "sqm_per_room": sqm_per_room,
+        "typology_grouped": peticion.typology_grouped,
+        "zona_modelo": peticion.zona_modelo,
+        "river_bank": peticion.river_bank,
+    }])[COLUMNAS]
+    pred_log = modelo.predict(fila)[0]
+    precio_esperado = float(np.exp(pred_log))
+    residuo = np.log(peticion.monthly_price) - pred_log
+    z_modelo = residuo / m["r_std"]
+    p_modelo = _clip01(min(abs(z_modelo), tope) / tope)
+
+    # --- SENAL 4: Isolation Forest ---
+    fila_iso = pd.DataFrame([{
+        "monthly_price": peticion.monthly_price,
+        "area_sqm": peticion.area_sqm,
+        "n_rooms": peticion.n_rooms,
+        "price_per_sqm": price_per_sqm,
+        "sqm_per_room": sqm_per_room,
+    }])[m["vars_iso"]]
+    score_iso = float(-m["iso"].score_samples(fila_iso)[0])
+    p_iso = _clip01((score_iso - m["iso_min"]) / (m["iso_max"] - m["iso_min"]))
+
+    # --- Puntuacion compuesta ---
+    anomaly_score = round(
+        pesos["reglas"] * p_reglas + pesos["modelo"] * p_modelo +
+        pesos["zona"] * p_zona + pesos["iso"] * p_iso, 4
+    )
+
+    log.info(
+        "anomalia zona=%s precio=%.0f -> score=%.3f (reglas=%d)",
+        peticion.zona_modelo, peticion.monthly_price, anomaly_score, n_reglas,
+    )
+
+    return RespuestaAnomalia(
+        anomaly_score=anomaly_score,
+        precio_esperado_eur=round(precio_esperado, 2),
+        z_modelo=round(float(z_modelo), 2),
+        z_zona=round(float(z_zona), 2),
+        n_reglas_activadas=n_reglas,
+        desglose=DesgloseSenales(
+            reglas=round(p_reglas, 4),
+            zona=round(p_zona, 4),
+            modelo=round(p_modelo, 4),
+            iso=round(p_iso, 4),
+        ),
+        aviso="Indicio estadistico, no prueba de fraude. Requiere revision.",
+    )
