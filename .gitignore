@@ -8,6 +8,10 @@ __pycache__/
 
 # Credenciales - NUNCA subir
 .env
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+merge_tmp/
 
 # Datos - no se redistribuyen
 data/raw/
