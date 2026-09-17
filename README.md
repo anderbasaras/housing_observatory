@@ -124,12 +124,11 @@ registrada en el log, base para la vigilancia de drift.
 El cuadro de mando se ha construido en Tableau Public: KPIs ejecutivos, mapa
 coroplético por barrio, evolución temporal y brecha oferta-transacción.
 
-<!-- Sustituir por el enlace real a la visualización publicada -->
-Visualización publicada: _pendiente de enlace_
-
-Los datos que alimenta el dashboard se generan con
-`data_ingestion/export_tableau.py`, que produce `tableau_anuncios.csv`,
-`tableau_brecha.csv` y `tableau_zonas.geojson`.
+Los datos que lo alimentan se generan con `data_ingestion/export_tableau.py`,
+que produce `tableau_anuncios.csv`, `tableau_brecha.csv` y
+`tableau_zonas.geojson`. Tableau Public no admite conexión a bases de datos,
+de ahí la exportación a fichero con los nombres de barrio ya normalizados,
+la predicción del modelo y la puntuación de anomalía incorporadas.
 
 ## Notas metodológicas
 
