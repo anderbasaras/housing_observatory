@@ -39,9 +39,13 @@ datos no la sostienen.
 | EMAL — Gobierno Vasco | Precio de transacción por barrio | 505 registros, 2016–2025 |
 | Open Data Euskadi | Límites municipales | 35 municipios |
 | GeoBilbao | Límites de barrio | 46 barrios |
+| OpenStreetMap (Overpass API) | Equipamientos para distancias: metro, tren, hospitales | 13 consultas cacheadas |
 
 Captura de anuncios: julio de 2022. Los datos en bruto no se redistribuyen en
 este repositorio.
+
+Los datos de OpenStreetMap se publican bajo licencia ODbL,
+© colaboradores de OpenStreetMap.
 
 ## Arquitectura
 
@@ -50,7 +54,7 @@ Fuentes → Ingesta (Python) → PostgreSQL + PostGIS (modelo estrella)
                            → MongoDB (datos crudos y auditoría)
                            → Procesamiento y variables derivadas
                            → Modelos (precio, anomalías)
-                           → API y visualización
+                           → API (FastAPI) y dashboard (Tableau)
 ```
 
 ## Estado
@@ -61,34 +65,71 @@ Fuentes → Ingesta (Python) → PostgreSQL + PostGIS (modelo estrella)
 | 1 — Modelado de datos e ingesta | Completada |
 | 2 — Procesamiento y enriquecimiento | Completada |
 | 3 — Modelización | Completada |
-| 4 — Visualización | En curso |
-| 5 — API y monitorización | Pendiente |
+| 4 — Visualización | Completada |
+| 5 — API y monitorización | Completada |
+| 6 — Memoria y defensa | Completada |
 
 ## Stack
 
 Python 3.12 · PostgreSQL 17 + PostGIS 3.5 · MongoDB 8 · scikit-learn · SHAP ·
-GeoPandas · FastAPI
+GeoPandas · FastAPI · Tableau Public
 
 ## Estructura
 
-- `data_ingestion/` — transformación y carga de las cuatro fuentes
-- `db/migrations/` — esquema de base de datos versionado
-- `notebooks/` — análisis exploratorio y modelización
-- `models/artifacts/` — modelo entrenado
-- `scripts/` — verificación de conexiones y utilidades
-- `docs/` — documentación del proyecto
+- `data_ingestion/` — transformación y carga de las cinco fuentes, y exportación a Tableau
+- `db/migrations/` — esquema de base de datos versionado (001–007)
+- `notebooks/` — análisis exploratorio, modelización, explicabilidad y anomalías
+- `models/` — construcción y artefactos de los modelos entrenados
+- `api/` — servicio FastAPI de predicción y scoring
+- `scripts/` — verificación de conexiones y utilidades de inspección
+- `cache/` — respuestas de la Overpass API, versionadas para que el cálculo
+  de distancias sea reproducible sin volver a consultar OpenStreetMap
+- `docs/figuras/` — figuras generadas para la memoria
 
 ## Configuración
 
-```bash
+Windows / PowerShell:
+
+```powershell
 py -3.12 -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Copiar `.env.example` a `.env` y completar las credenciales.
+Copiar `.env.example` a `.env` y completar las credenciales de PostgreSQL
+y MongoDB.
 
 Verificar la instalación con `python scripts/test_conexion.py`.
+
+## API
+
+```powershell
+uvicorn api.main:app --reload
+```
+
+Documentación interactiva en `http://127.0.0.1:8000/docs`.
+
+| Endpoint | Método | Función |
+|---|---|---|
+| `/` | GET | Comprobación de estado del servicio |
+| `/zonas` | GET | Zonas admitidas por el modelo |
+| `/predict_price` | POST | Estimación del precio mensual de alquiler |
+| `/score_anomaly` | POST | Puntuación de anomalía de un anuncio |
+
+La validación de entrada se realiza con Pydantic v2. Cada predicción queda
+registrada en el log, base para la vigilancia de drift.
+
+## Dashboard
+
+El cuadro de mando se ha construido en Tableau Public: KPIs ejecutivos, mapa
+coroplético por barrio, evolución temporal y brecha oferta-transacción.
+
+<!-- Sustituir por el enlace real a la visualización publicada -->
+Visualización publicada: _pendiente de enlace_
+
+Los datos que alimenta el dashboard se generan con
+`data_ingestion/export_tableau.py`, que produce `tableau_anuncios.csv`,
+`tableau_brecha.csv` y `tableau_zonas.geojson`.
 
 ## Notas metodológicas
 
