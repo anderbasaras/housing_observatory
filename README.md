@@ -17,6 +17,12 @@ Este proyecto cubre ese vacío con una aportación diferencial: **comparar el
 precio que se pide en los anuncios con el que realmente se paga**, según los
 depósitos de fianza recogidos por la estadística oficial vasca.
 
+## Cuadro de mando
+
+[![Brecha entre precio de oferta y precio de transacción](https://public.tableau.com/static/images/Ob/ObservatoriodeViviendaenAlquiler-BilbaoMetropolitano/Brechaentrepreciodeofertaypreciodetransaccin/1.png)](https://public.tableau.com/views/ObservatoriodeViviendaenAlquiler-BilbaoMetropolitano/Brechaentrepreciodeofertaypreciodetransaccin)
+
+**[Abrir el cuadro de mando interactivo en Tableau Public →](https://public.tableau.com/views/ObservatoriodeViviendaenAlquiler-BilbaoMetropolitano/Brechaentrepreciodeofertaypreciodetransaccin)**
+
 ## Resultados principales
 
 | Hallazgo | Valor |
@@ -129,6 +135,9 @@ que produce `tableau_anuncios.csv`, `tableau_brecha.csv` y
 `tableau_zonas.geojson`. Tableau Public no admite conexión a bases de datos,
 de ahí la exportación a fichero con los nombres de barrio ya normalizados,
 la predicción del modelo y la puntuación de anomalía incorporadas.
+
+Visualización publicada:
+[Observatorio de Vivienda en Alquiler — Bilbao Metropolitano](https://public.tableau.com/views/ObservatoriodeViviendaenAlquiler-BilbaoMetropolitano/Brechaentrepreciodeofertaypreciodetransaccin)
 
 ## Notas metodológicas
 
